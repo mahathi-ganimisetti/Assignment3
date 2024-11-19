@@ -3,7 +3,7 @@ function simulate(data, svg) {
     const height = parseInt(svg.attr("viewBox").split(' ')[3]);
 
     const main_group = svg.append("g")
-        .attr("transform", "translate(0, 50)");
+        .attr("transform", "translate(500, 400)");
 
     const affiliationCountries = {};
     data.nodes.forEach(d => {
@@ -43,7 +43,7 @@ function simulate(data, svg) {
 
     const scale_radius = d3.scaleSqrt()
         .domain(d3.extent(Object.values(node_degree)))
-        .range([3, 12]);  
+        .range([2, 5]);
 
     const color = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -52,7 +52,7 @@ function simulate(data, svg) {
         .data(data.links)
         .enter()
         .append("line")
-        .style("stroke-width", 2)
+        .style("stroke-width", .4)
         .style("stroke", "#ccc");
 
     const node_elements = main_group.append("g")
@@ -64,11 +64,18 @@ function simulate(data, svg) {
             return "gr_" + (d.type === "author" ? "author" : "affiliation");
         })
         .on("mouseenter", function (event, d) {
-            node_elements.classed("inactive", true);  
-            d3.selectAll(".gr_" + d.countryColor).classed("inactive", false);  
+            node_elements.classed("inactive", true)
+                .style("opacity", 0.2);
+
+            node_elements.filter(function (node) {
+                return node.affiliation === d.affiliation;  
+            })
+            .style("opacity", 1)
+            .classed("inactive", false);  
         })
         .on("mouseleave", function () {
-            node_elements.classed("inactive", false);  
+            node_elements.style("opacity", 1)
+                .classed("inactive", false);
         })
         .on("click", function (event, d) {
             const tooltip = d3.select("#tooltip");
@@ -115,10 +122,10 @@ function simulate(data, svg) {
         .force("collide", d3.forceCollide().radius(d => scale_radius(node_degree[d.id]) * 1.5))
         .force("x", d3.forceX())
         .force("y", d3.forceY())
-        .force("charge", d3.forceManyBody().strength(-200))
+        .force("charge", d3.forceManyBody().strength(-6))
         .force("link", d3.forceLink(data.links)
             .id(d => d.id)
-            .distance(100)
+            .distance(40)
             .strength(0.1)
         )
         .on("tick", ticked);
